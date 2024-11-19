@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createShortUrl } from "@/lib/createShortUrl";
 
+interface ErrorWithMessage {
+    message: string;
+}
+
 export async function POST(req: NextRequest) {
     try {
         const { alias, url } = await req.json();
@@ -22,8 +26,8 @@ export async function POST(req: NextRequest) {
 
         await createShortUrl(alias, url);
         return NextResponse.json({ success: true, alias }, { status: 201 });
-    } catch (error: any) {
-        if (error.message === "Alias already exists.") {
+    } catch (error) {
+        if ((error as ErrorWithMessage).message === "Alias already exists.") {
             return NextResponse.json(
                 { success: false, message: "Alias already exists." },
                 { status: 409 }

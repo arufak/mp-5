@@ -59,25 +59,25 @@ export default function Home() {
     const [error, setError] = useState<string | null>(null);
 
     const handleSubmit = async () => {
-        setError(null);
-
-        try {
-            const response = await fetch("/api/shorten", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ alias, url }),
-            });
-
-            const data = await response.json();
-
-            if (data.success) {
-                setShortenedUrl(`${window.location.origin}/${data.alias}`);
-            } else {
-                setError(data.message);
-            }
-        } catch (e) {
-            setError("Failed to submit the URL");
-        }
+      setError(null);
+  
+      try {
+          const response = await fetch("/api/shorten", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ alias, url }),
+          });
+  
+          const data = await response.json();
+  
+          if (data.success) {
+              setShortenedUrl(`${window.location.origin}/${data.alias}`);
+          } else {
+              setError(data.message);
+          }
+      } catch (_error) {
+          setError("Failed to submit the URL");
+      }
     };
 
     const handleCopy = () => {
