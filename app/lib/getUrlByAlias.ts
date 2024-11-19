@@ -1,4 +1,4 @@
-import getCollection from '../db';
+import getCollection from '../../db';
 
 export async function getUrlByAlias(alias: string) {
     const collection = await getCollection('urls');
