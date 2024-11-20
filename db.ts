@@ -1,28 +1,48 @@
-// db.ts
 import { MongoClient, Db, Collection } from "mongodb";
 
+// Type assertion for environment variable
 const MONGO_URI = process.env.MONGO_URI as string;
-if (!MONGO_URI) {
-    throw new Error("MONGO_URI environment variable is undefined");
+const DB_NAME = "mp-5";
+
+// Better error message with environment check
+if (!process.env.MONGO_URI) {
+    throw new Error(
+        "Please define the MONGO_URI environment variable in .env.local or Vercel settings"
+    );
 }
 
-const DB_NAME = "url-shortener";
 let client: MongoClient | null = null;
 let db: Db | null = null;
 
 async function connect(): Promise<Db> {
-    if (!client) {
-        client = new MongoClient(MONGO_URI);
-        await client.connect();
+    try {
+        console.log('Attempting to connect to MongoDB...');
+        
+        if (!client) {
+            client = new MongoClient(MONGO_URI);
+            await client.connect();
+            console.log('Successfully connected to MongoDB');
+        }
+        
+        return client.db(DB_NAME);
+    } catch (error) {
+        console.error('MongoDB connection error:', error);
+        throw error;
     }
-    return client.db(DB_NAME);
 }
 
 export default async function getCollection(
     collectionName: string,
 ): Promise<Collection> {
-    if (!db) {
-        db = await connect();
+    try {
+        if (!db) {
+            console.log('Getting database connection...');
+            db = await connect();
+            console.log('Successfully got database connection');
+        }
+        return db.collection(collectionName);
+    } catch (error) {
+        console.error('Error getting collection:', error);
+        throw error;
     }
-    return db.collection(collectionName);
 }
