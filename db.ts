@@ -1,4 +1,4 @@
-import { MongoClient, Db, Collection, MongoClientOptions } from "mongodb";
+import { MongoClient, Collection } from "mongodb";
 
 const MONGO_URI = process.env.MONGO_URI as string;
 if (!MONGO_URI) {
@@ -7,65 +7,30 @@ if (!MONGO_URI) {
 
 const DB_NAME = "mp-5";
 
-// Increase timeouts and add better connection options
-const options: MongoClientOptions = {
-    connectTimeoutMS: 30000,    // 30 seconds
-    socketTimeoutMS: 30000,     // 30 seconds
-    serverSelectionTimeoutMS: 30000, // 30 seconds
-    maxPoolSize: 10,
-    minPoolSize: 1,
-    retryWrites: true,
-    w: 'majority'
-};
-
-declare global {
-    var mongoConnection: {
-        client: MongoClient | null;
-        db: Db | null;
-    };
-}
-
-if (!global.mongoConnection) {
-    global.mongoConnection = {
-        client: null,
-        db: null
-    };
-}
-
-async function connect(): Promise<Db> {
-    try {
-        if (global.mongoConnection.db) {
-            console.log('Using existing database connection');
-            return global.mongoConnection.db;
-        }
-
-        console.log('Creating new MongoDB connection...');
-        const client = new MongoClient(MONGO_URI, options);
-        await client.connect();
-        
-        const db = client.db(DB_NAME);
-        global.mongoConnection.client = client;
-        global.mongoConnection.db = db;
-        
-        console.log('Successfully connected to MongoDB');
-        return db;
-    } catch (error) {
-        console.error('MongoDB connection error:', error);
-        // Reset connection on error
-        global.mongoConnection.client = null;
-        global.mongoConnection.db = null;
-        throw error;
-    }
-}
+// Configure MongoDB client with simpler options
+const client = new MongoClient(MONGO_URI, {
+    connectTimeoutMS: 10000,
+    socketTimeoutMS: 10000,
+});
 
 export default async function getCollection(
     collectionName: string,
 ): Promise<Collection> {
     try {
-        const db = await connect();
+        await client.connect();
+        const db = client.db(DB_NAME);
         return db.collection(collectionName);
     } catch (error) {
-        console.error('Error getting collection:', error);
-        throw error;
+        console.error('Database connection error:', error);
+        throw new Error('Failed to connect to database');
+    }
+}
+
+// Cleanup function
+export async function closeConnection() {
+    try {
+        await client.close();
+    } catch (error) {
+        console.error('Error closing connection:', error);
     }
 }
