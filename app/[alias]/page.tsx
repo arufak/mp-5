@@ -14,7 +14,7 @@ export default async function Page({ params }: { params: { alias: string } }) {
         return (
             <div>
                 <h1>Alias not found</h1>
-                <p>The alias "{alias}" does not exist.</p>
+                <p>The alias &quot;{alias}&quot; does not exist.</p>
             </div>
         );
     } catch (error) {
