@@ -4,14 +4,12 @@ import { ShortenRequest, ShortenResponse } from "@/app/interfaces/types";
 
 export async function POST(req: NextRequest) {
     try {
-        // Log the incoming request
-        console.log('Received request body:', await req.text());
+        // Only parse the body once
+        const body = await req.json() as ShortenRequest;
+        const { alias, url } = body;
 
-        // Parse the request body again since we consumed it above
-        const { alias, url } = JSON.parse(await req.clone().text()) as ShortenRequest;
-
-        // Input validation logging
-        console.log('Validating inputs:', { alias, url });
+        // Log the request
+        console.log('Received request:', { alias, url });
 
         if (!alias || !url) {
             console.log('Missing required fields');
@@ -30,9 +28,6 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // Log before database operation
-        console.log('Attempting to create short URL:', { alias, url });
-
         // Create the short URL
         await createShortUrl(alias, url);
         
@@ -44,7 +39,7 @@ export async function POST(req: NextRequest) {
         );
     } catch (error: unknown) {
         // Detailed error logging
-        console.error('Error details:', {
+        console.error('Error in shorten route:', {
             message: error instanceof Error ? error.message : 'Unknown error',
             stack: error instanceof Error ? error.stack : undefined,
             error
