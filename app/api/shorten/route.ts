@@ -2,14 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { createShortUrl } from "@/lib/createShortUrl";
 import { ShortenRequest, ShortenResponse } from "@/app/interfaces/types";
 
-export async function POST(req: NextRequest) {
+export async function POST(req: NextRequest): Promise<NextResponse<ShortenResponse>> {
     try {
         // Set a timeout for the entire operation
-        const timeoutPromise = new Promise((_, reject) => {
+        const timeoutPromise = new Promise<never>((_, reject) => {
             setTimeout(() => reject(new Error('Operation timed out')), 5000);
         });
 
-        const operationPromise = async () => {
+        const operationPromise = async (): Promise<NextResponse<ShortenResponse>> => {
             const body = await req.json() as ShortenRequest;
             console.log('Received request body:', body);
 
@@ -30,7 +30,10 @@ export async function POST(req: NextRequest) {
         };
 
         // Race between the operation and timeout
-        return await Promise.race([operationPromise(), timeoutPromise]);
+        return await Promise.race([
+            operationPromise(),
+            timeoutPromise
+        ]) as NextResponse<ShortenResponse>;
     } catch (error) {
         console.error('Error in URL shortener:', error);
 
