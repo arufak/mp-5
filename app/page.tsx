@@ -1,8 +1,7 @@
-// app/page.tsx
 "use client";
 
 import styled from "styled-components";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const StyledDiv = styled.div`
     display: flex;
@@ -57,27 +56,34 @@ export default function Home() {
     const [url, setUrl] = useState("");
     const [shortenedUrl, setShortenedUrl] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [baseUrl, setBaseUrl] = useState("");
+
+    useEffect(() => {
+        // Get the base URL from the deployed environment or localhost
+        setBaseUrl(window.location.origin);
+    }, []);
 
     const handleSubmit = async () => {
-      setError(null);
-  
-      try {
-          const response = await fetch("/api/shorten", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ alias, url }),
-          });
-  
-          const data = await response.json();
-  
-          if (data.success) {
-              setShortenedUrl(`${window.location.origin}/${data.alias}`);
-          } else {
-              setError(data.message);
-          }
-      } catch (_error) {
-          setError("Failed to submit the URL");
-      }
+        setError(null);
+
+        try {
+            const response = await fetch("/api/shorten", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ alias, url }),
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                // Use the baseUrl instead of hardcoding localhost:3000
+                setShortenedUrl(`${baseUrl}/${data.alias}`);
+            } else {
+                setError(data.message);
+            }
+        } catch (_error) {
+            setError("Failed to submit the URL");
+        }
     };
 
     const handleCopy = () => {
@@ -92,13 +98,13 @@ export default function Home() {
             <StyledInput
                 type="text"
                 value={alias}
-                placeholder="Enter alias"
+                placeholder="Enter alias (e.g., mylink)"
                 onChange={(e) => setAlias(e.target.value)}
             />
             <StyledInput
                 type="text"
                 value={url}
-                placeholder="Enter URL"
+                placeholder="Enter URL (e.g., https://example.com)"
                 onChange={(e) => setUrl(e.target.value)}
             />
             <StyledButton onClick={handleSubmit}>Create Short URL</StyledButton>
