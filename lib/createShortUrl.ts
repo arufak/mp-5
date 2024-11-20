@@ -5,7 +5,7 @@ export async function createShortUrl(alias: string, url: string): Promise<string
     try {
         console.log('Getting collection for URL creation...');
         const collection = await getCollection('urls');
-        
+
         console.log('Checking for existing alias:', alias);
         const existing = await collection.findOne({ alias });
 
@@ -21,16 +21,16 @@ export async function createShortUrl(alias: string, url: string): Promise<string
             createdAt: new Date()
         };
 
-        await collection.insertOne(newRecord);
-        console.log('Successfully created URL record');
+        const result = await collection.insertOne(newRecord);
         
+        if (!result.acknowledged) {
+            throw new Error('Failed to insert URL record');
+        }
+
+        console.log('Successfully created URL record');
         return alias;
     } catch (error) {
-        console.error('Error in createShortUrl:', {
-            alias,
-            url,
-            error
-        });
+        console.error('Error in createShortUrl:', error);
         throw error;
     }
 }
