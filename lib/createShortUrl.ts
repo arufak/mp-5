@@ -1,3 +1,5 @@
+//creates new URL mappings in the database; checks for existing aliases; handles duplication
+
 import getCollection from '../db';
 
 export async function createShortUrl(alias: string, url: string) {

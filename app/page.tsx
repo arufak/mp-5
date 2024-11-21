@@ -1,3 +1,5 @@
+//FRONTEND: main user interface as a React component
+
 "use client";
 
 import styled from "styled-components";

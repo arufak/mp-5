@@ -1,3 +1,5 @@
+//DATABASE CONNECTION: establish connection to MongoDB database
+
 import { MongoClient, Db, Collection } from "mongodb";
 
 const MONGO_URI = process.env.MONGO_URI as string;
