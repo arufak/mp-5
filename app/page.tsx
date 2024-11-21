@@ -1,7 +1,7 @@
 "use client";
 
 import styled from "styled-components";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 const StyledDiv = styled.div`
     display: flex;
@@ -56,12 +56,6 @@ export default function Home() {
     const [url, setUrl] = useState("");
     const [shortenedUrl, setShortenedUrl] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
-    const [baseUrl, setBaseUrl] = useState("");
-
-    useEffect(() => {
-        // Get the base URL from the deployed environment or localhost
-        setBaseUrl(window.location.origin);
-    }, []);
 
     const handleSubmit = async () => {
         setError(null);
@@ -76,12 +70,11 @@ export default function Home() {
             const data = await response.json();
 
             if (data.success) {
-                // Use the baseUrl instead of hardcoding localhost:3000
-                setShortenedUrl(`${baseUrl}/${data.alias}`);
+                setShortenedUrl(`${window.location.origin}/${data.alias}`);
             } else {
                 setError(data.message);
             }
-        } catch (_error) {
+        } catch (e) {
             setError("Failed to submit the URL");
         }
     };

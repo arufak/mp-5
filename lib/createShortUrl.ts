@@ -1,36 +1,11 @@
 import getCollection from '../db';
-import { UrlRecord } from '@/app/interfaces/types';
 
-export async function createShortUrl(alias: string, url: string): Promise<string> {
-    try {
-        console.log('Getting collection for URL creation...');
-        const collection = await getCollection('urls');
+export async function createShortUrl(alias: string, url: string) {
+    const collection = await getCollection('urls');
+    const existing = await collection.findOne({ alias });
 
-        console.log('Checking for existing alias:', alias);
-        const existing = await collection.findOne({ alias });
+    if (existing) throw new Error('Alias already exists.');
 
-        if (existing) {
-            console.log('Alias already exists:', alias);
-            throw new Error('Alias already exists.');
-        }
-
-        console.log('Creating new URL record:', { alias, url });
-        const newRecord: UrlRecord = {
-            alias,
-            url,
-            createdAt: new Date()
-        };
-
-        const result = await collection.insertOne(newRecord);
-        
-        if (!result.acknowledged) {
-            throw new Error('Failed to insert URL record');
-        }
-
-        console.log('Successfully created URL record');
-        return alias;
-    } catch (error) {
-        console.error('Error in createShortUrl:', error);
-        throw error;
-    }
+    const result = await collection.insertOne({ alias, url });
+    return result.insertedId;
 }

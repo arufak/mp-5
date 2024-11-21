@@ -1,49 +1,39 @@
 import { NextRequest, NextResponse } from "next/server";
-import getCollection from "@/db";
+import { createShortUrl } from "@/lib/createShortUrl";
 
 export async function POST(req: NextRequest) {
     try {
-        // Get request data
         const { alias, url } = await req.json();
-        console.log('Processing request for:', { alias, url });
 
-        // Basic validation
         if (!alias || !url) {
-            return NextResponse.json({
-                success: false,
-                message: "Alias and URL are required"
-            }, { status: 400 });
+            return NextResponse.json(
+                { success: false, message: "Alias and URL are required." },
+                { status: 400 }
+            );
         }
 
-        // Get collection
-        const collection = await getCollection('urls');
-        
-        // Check for existing alias
-        const existing = await collection.findOne({ alias });
-        if (existing) {
-            return NextResponse.json({
-                success: false,
-                message: "This alias is already taken"
-            }, { status: 409 });
+        const urlRegex = /^(https?:\/\/[^\s/$.?#].[^\s]*)$/;
+        if (!urlRegex.test(url)) {
+            return NextResponse.json(
+                { success: false, message: "Invalid URL format." },
+                { status: 400 }
+            );
         }
 
-        // Insert new URL
-        await collection.insertOne({
-            alias,
-            url,
-            createdAt: new Date()
-        });
+        await createShortUrl(alias, url);
+        return NextResponse.json({ success: true, alias }, { status: 201 });
+    } catch (error: any) {
+        if (error.message === "Alias already exists.") {
+            return NextResponse.json(
+                { success: false, message: "Alias already exists." },
+                { status: 409 }
+            );
+        }
 
-        return NextResponse.json({
-            success: true,
-            alias
-        }, { status: 201 });
-
-    } catch (error) {
-        console.error('Error handling request:', error);
-        return NextResponse.json({
-            success: false,
-            message: "Failed to submit the URL"
-        }, { status: 500 });
+        console.error("Error in shorten.ts:", error);
+        return NextResponse.json(
+            { success: false, message: "Internal server error." },
+            { status: 500 }
+        );
     }
 }

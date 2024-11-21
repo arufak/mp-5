@@ -1,7 +1,6 @@
 import getCollection from '../db';
-import { UrlRecord } from '@/app/interfaces/types';
 
-export async function getUrlByAlias(alias: string): Promise<UrlRecord | null> {
+export async function getUrlByAlias(alias: string) {
     const collection = await getCollection('urls');
-    return await collection.findOne<UrlRecord>({ alias });
+    return await collection.findOne({ alias });
 }
